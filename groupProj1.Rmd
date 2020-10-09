@@ -1,0 +1,29 @@
+---
+title: "Group Project 1 | STAT 330"
+
+author: <center> Elizabeth Moller, Peter Welty, Jeong Kim <center>
+output: html_document
+---
+
+<style type="text/css">
+h1.title {
+  font-size: 40px;
+  text-align: center;
+}
+</style>
+
+```{r setup, include=FALSE}
+# load any necessary packages here
+library(tidyverse)
+library(ggfortify)
+library(car)
+sz <- 16
+```
+
+## Data and Description
+
+We got our crime data from the FBI's database from 2010-2015 and got our rent data for the same years from Zillow. We are interested to see if there is a correlation between crime rates and average rent in a city in the United States. Our predictor variable is crime rate and how it might explain rent prices in a city. 
+
+```{r}
+
+```
