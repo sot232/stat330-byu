@@ -20,10 +20,269 @@ library(car)
 sz <- 16
 ```
 
+
 ## Data and Description
 
-We got our crime data from the FBI's database from 2010-2015 and got our rent data for the same years from Zillow. We are interested to see if there is a correlation between crime rates and average rent in a city in the United States. Our predictor variable is crime rate and how it might explain rent prices in a city. 
+We are interested to see if there is a correlation between crime rates and average rent in a city in the United States. We hypothesize that rent with have a significant affect on crime rate, specifically that higher rent will increase crime. Our predictor variable is crime rate and how it might explain rent prices in a city.
+
+To test our assumption, we got our crime data from the FBI's database from 2010-2015 and got our rent data for the same years from Zillow. We will begin our analysis by applying basic summary statistics and exploratory data techniques to better understand the data. Then, we apply simple linear regression
+
+We conclude our analysis by using what we learned to infer to ... We recommend ...
+
+## Steps
+
+### Import and preprocessing data
+
+The following table displays the variable names in this data set, along with their descriptions.
+
+Variable   | Description
+---------- | -------------
+Weight     | Weight of the car in pounds
+MPG        | Miles per gallon of the car
 
 ```{r}
-
+data <- read.csv(file = "Crime_vs_Rent_Group_Project.csv", header = TRUE)
 ```
+
+#### Preprocessing
+- Originally, there are two datasets. One for rent and one for crime. We merged them. 
+- Remove NaNs in Avg_rent and crime_rate columns
+```{r}
+data <- data[!is.na(data$Avg_rent), ]
+data <- data[!is.na(data$crime_rate),]
+```
+
+
+We start by applying basic summary and exploratory statistics to this data to better understand the data and identify trends.
+
+```{r}
+summary(data)
+head(data)
+```
+
+```{r}
+glimpse(data)
+```
+
+#### Correlation
+
+```{r}
+cor(data$Avg_rent, data$crime_rate)
+```
+
+```{r}
+data.lm <- lm(formula = crime_rate ~ Avg_rent, data = data)
+summary(data.lm)
+
+data$residuals <- data.lm$residuals
+data$fitted.values <- data.lm$fitted.values
+```
+
+### Basic Scatterplot
+```{r}
+data.base.plot <- ggplot(data = data, mapping = aes(x = Avg_rent, y = crime_rate)) + 
+  geom_point() +
+  ggtitle("Title") +
+  xlab("Average Rent ($)") +
+  ylab("Crime Rate") +
+  scale_x_continuous(breaks = seq(0, 4000, by = 500),
+                     minor_breaks = seq(0, 4000, by = 500)) +
+  scale_y_continuous(breaks = seq(0, 0.025, by = 0.0025),
+                     minor_breaks = seq(0, 0.025, by = 0.0025)) +
+  theme(aspect.ratio = 1, plot.title = element_text(hjust = 0.5))
+data.base.plot
+```
+
+The OLS regression line along with the scatterplot
+
+```{r}
+data.base.plot + geom_smooth(method = "lm", se = FALSE) 
+```
+
+Residuals vs. Fitted Values Plot
+
+```{r}
+autoplot(data.lm, which = 1, ncol = 1, nrow = 1) +
+  theme(aspect.ratio = 1, plot.title = element_text(hjust = 0.5))
+```
+
+Residuals vs. Predictor Plot
+
+```{r}
+ggplot(data = data, mapping = aes(y = residuals, x = Avg_rent)) +
+  geom_point() +
+  theme(aspect.ratio = 1)
+```
+
+
+
+Normal Probability Plot
+
+```{r}
+autoplot(data.lm, which = 2, ncol = 1, nrow = 1) +
+  theme(aspect.ratio = 1, plot.title = element_text(hjust = 0.5))
+```
+
+Histogram for residuals
+
+```{r}
+ggplot(data = data, mapping = aes(x = residuals)) + 
+  geom_histogram(mapping = aes(y = ..density..), binwidth = 0.0015) +
+  stat_function(fun = dnorm, color = "red", size = 0.0015,
+                args = list(mean = mean(data$residuals), 
+                            sd = sd(data$residuals))) +
+  theme(aspect.ratio = 1)
+```
+
+Boxplot for residuals
+
+```{r}
+ggplot(data = data, mapping = aes(y = residuals)) +
+  geom_boxplot() +
+  theme(aspect.ratio = 1)
+```
+
+Sequence Plot
+
+```{r}
+ggplot(data) +
+  geom_line(mapping = aes(x = 1:dim(data)[1], y = residuals)) +
+  theme_bw() + 
+  scale_y_continuous(limits = c(-0.008, 0.015)) +
+  scale_x_continuous(limits = c(0, 350)) +
+  xlab("TODO") +
+  theme(axis.title.x = element_text(size = sz),
+        axis.title.y = element_text(size = sz),
+        axis.text = element_text(size = sz),
+        aspect.ratio = 1)
+```
+
+Shapiro-Wilk Test
+
+```{r}
+shapiro.test(data$residuals)
+```
+
+Cook's Distance
+
+```{r}
+data$cooksd <- cooks.distance(data.lm)
+# Find n
+# data[data$cooksd >= n / length(data$cooksd), ]
+```
+
+Brown-Forsythe Test
+
+```{r}
+grp <- as.factor(c(rep("lower", floor(dim(data)[1] / 2)), 
+                   rep("upper", ceiling(dim(data)[1] / 2))))
+leveneTest(data[order(data$Avg_rent), "residuals"] ~ grp, center = median)
+```
+
+DFBETAS
+
+```{r}
+# calculate the DFBETAS
+data.dfbetas <- as.data.frame(dfbetas(data.lm))
+# add the observation numbers to dataframe for plotting purposes
+data.dfbetas$obs <- 1:length(data$Avg_rent)
+
+# plot the DFBETAS against the observation number
+ggplot(data = data.dfbetas) + 
+  geom_point(mapping = aes(x = obs, y = abs(Avg_rent))) +
+  ylab("Absolute Value of DFBETAS for Average Rent") +
+  xlab("Observation Number") +
+  geom_hline(mapping = aes(yintercept = 2 / sqrt(length(obs))),
+             color = "red", linetype = "dashed") +
+  #scale_x_continuous(limits = c(0, 300)) +
+  #scale_y_continuous(limits = c(0, 0.25)) +
+  theme_bw() +
+  theme(
+    axis.title.x = element_text(size = sz - 5),
+    axis.title.y = element_text(size = sz - 5),
+    axis.text = element_text(size = sz - 5),
+    aspect.ratio = 1,
+    plot.title = element_blank()
+  )
+
+# print a list of potential influential points according to DFBETAS
+rent.extreme.dfbetas <- data.dfbetas[abs(data.dfbetas$Avg_rent) > 
+                                         2 / sqrt(length(data.dfbetas$obs)), ]
+rent.extreme.dfbetas[order(rent.extreme.dfbetas$Avg_rent), ]
+```
+
+DFFITS
+
+```{r}
+# calculate the DFFITS
+data.dffits <- data.frame("dffits" = dffits(data.lm))
+# add the observation numbers to dataframe for plotting purposes
+data.dffits$obs <- 1:length(data$crime_rate)
+
+# plot the DFFITS against the observation number
+ggplot(data = data.dffits) + 
+  geom_point(mapping = aes(x = obs, y = abs(dffits))) +
+  ylab("Absolute Value of DFFITS for Y") +
+  xlab("Observation Number") +
+  geom_hline(mapping = aes(yintercept = 2 * 
+                             sqrt(length(data.lm$coefficients) / length(obs))),
+             color = "red", linetype = "dashed") +
+  theme_bw() +
+  #scale_x_continuous(limits = c(0, 300)) +
+  #scale_y_continuous(limits = c(0, 0.3)) +
+  theme(
+    axis.title.x = element_text(size = sz - 5),
+    axis.title.y = element_text(size = sz - 5),
+    axis.text = element_text(size = sz - 5),
+    aspect.ratio = 1,
+    plot.title = element_blank()
+  )
+
+# print a list of potential influential points according to DFFITS
+data.dffits[abs(data.dffits$dffits) > 2 * 
+             sqrt(length(data.lm$coefficients) / length(data.dffits$obs)), ]
+```
+
+
+
+
+### Assumptions
+
+#### X vs Y is linear
+X vs Y is not linear.
+
+#### The residuals are independent
+
+#### The residuals are normally distributed and centered at zero
+
+#### The residuals have equal/constant variance across all values of X
+
+#### The model describes all observations (i.e., there are no influential points)
+
+
+
+
+
+
+
+A 95% confidence interval for the slope
+
+```{r}
+confint(data.lm, parm = "Avg_rent", level = 0.95)
+```
+
+The MSE
+
+```{r}
+sum(data$residuals ^ 2) / (length(data$residuals) - 2)
+```
+
+
+
+
+
+
+## Results and Conclusion
+
+
+
