@@ -1,7 +1,7 @@
 ---
 title: "Group Project 1 | STAT 330"
 
-author: <center> Elizabeth Moller, Peter Welty, Jeong Kim <center>
+author: <center> Elizabeth Mohler, Peter Welty, Jeong Kim <center>
 output: html_document
 ---
 
@@ -275,21 +275,219 @@ Additional predictor variables may actually be required. Since it seems rent pri
  Simple linear regression is not appropriate for this data set since few assumptions are met to even justify it. Another big indicator is the presence of many other predictor variables that could influence crime rates. Therefore it is possible that even transforming the current model may not yield any compelling results. It seems that Multiple linear regression could be a better route to be able to predict crime-rates. Trying to make statistical inference on this current model will mostly likely reveal that this is the case. 
 
 
+```{r, fig.align='center'}
+# We need to transform our data, so we run a Box Cox
+bc <- boxCox(data$Avg_rent ~ data$crime_rate)
+
+data$rent_transformed <- sin(data$Avg_rent)
+data$crime_transformed <- log(log((data$crime_rate) ^ (-4/3)))
+
+
+
+```
+### Choosing a Tranformation
+We knew we needed to tranform y (crime rate) significantly because the residuals were all over the place. We performed a box cox and saw the data was improving, but we then took the log of the transformed data, and it helped out nicely. We also transformed x which helped with normality in the data set. 
+
+
+```{r}
+transformed_data.lm <- lm(formula = crime_transformed ~ rent_transformed, data = data)
+summary(transformed_data.lm)
+
+data$residuals_t <- transformed_data.lm$residuals
+data$fitted.values_t <- transformed_data.lm$fitted.values
+```
+
+### Basic Scatterplot
+```{r}
+data.transformed.plot <- ggplot(data = data, mapping = aes(x = rent_transformed, y = crime_rate)) + 
+  geom_point() +
+  ggtitle("Tranformed Data Scatterplot") +
+  xlab("sin(Average Rent) ($)") +
+  ylab("log(1 /Crime Rate ^4/3)") +
+  scale_x_continuous(breaks = seq(0, 4000, by = 500),
+                     minor_breaks = seq(0, 4000, by = 500)) +
+  scale_y_continuous(breaks = seq(0, 0.025, by = 0.0025),
+                     minor_breaks = seq(0, 0.025, by = 0.0025)) +
+  theme(aspect.ratio = 1, plot.title = element_text(hjust = 0.5))
+data.transformed.plot
+```
+
+The OLS regression line along with the scatterplot
+
+```{r}
+data.transformed.plot + geom_smooth(method = "lm", se = FALSE) 
+```
+
+Residuals vs. Fitted Values Plot
+
+```{r}
+autoplot(transformed_data.lm, which = 1, ncol = 1, nrow = 1) +
+  theme(aspect.ratio = 1, plot.title = element_text(hjust = 0.5))
+```
+
+Residuals vs. Predictor Plot
+
+```{r}
+ggplot(data = data, mapping = aes(y = residuals_t, x = rent_transformed)) +
+  geom_point() +
+  theme(aspect.ratio = 1)
+```
+
+
+
+Normal Probability Plot
+
+```{r}
+autoplot(transformed_data.lm, which = 2, ncol = 1, nrow = 1) +
+  theme(aspect.ratio = 1, plot.title = element_text(hjust = 0.5))
+```
+
+Histogram for residuals
+
+```{r}
+ggplot(data = data, mapping = aes(x = residuals_t)) + 
+  geom_histogram(mapping = aes(y = ..density..), binwidth = .05) +
+  stat_function(fun = dnorm, color = "red", size = 2,
+                args = list(mean = mean(data$residuals_t), 
+                            sd = sd(data$residuals_t))) +
+  theme(aspect.ratio = 1)
+```
+
+Boxplot for residuals
+
+```{r}
+ggplot(data = data, mapping = aes(y = residuals_t)) +
+  geom_boxplot() +
+  theme(aspect.ratio = 1)
+```
+
+Sequence Plot
+
+```{r}
+ggplot(data) +
+  geom_line(mapping = aes(x = 1:dim(data)[1], y = residuals_t)) +
+  theme_bw() + 
+  scale_y_continuous(limits = c(-.5,.5)) +
+  scale_x_continuous(limits = c(0,340)) +
+  xlab("TODO") +
+  theme(axis.title.x = element_text(size = sz),
+        axis.title.y = element_text(size = sz),
+        axis.text = element_text(size = sz),
+        aspect.ratio = 1)
+```
+
+Shapiro-Wilk Test
+
+```{r}
+shapiro.test(data$residuals_t)
+```
+
+Cook's Distance
+
+```{r}
+data$cooksd_t <- cooks.distance(transformed_data.lm)
+# Find n
+data[data$cooksd_t >= 4 / length(data$cooksd_t), ]
+```
+
+Brown-Forsythe Test
+
+```{r}
+grp <- as.factor(c(rep("lower", floor(dim(data)[1] / 2)), 
+                   rep("upper", ceiling(dim(data)[1] / 2))))
+leveneTest(data[order(data$rent_transformed), "residuals"] ~ grp, center = median)
+```
+
+DFBETAS
+
+```{r}
+# calculate the DFBETAS
+data.dfbetas_t <- as.data.frame(dfbetas(transformed_data.lm))
+# add the observation numbers to dataframe for plotting purposes
+data.dfbetas_t$obs <- 1:length(data$rent_transformed)
+
+# plot the DFBETAS against the observation number
+ggplot(data = data.dfbetas_t) + 
+  geom_point(mapping = aes(x = obs, y = abs(rent_transformed))) +
+  ylab("Absolute Value of DFBETAS for 1 / Average Rent") +
+  xlab("Observation Number") +
+  geom_hline(mapping = aes(yintercept = 2 / sqrt(length(obs))),
+             color = "red", linetype = "dashed") +
+  #scale_x_continuous(limits = c(0, 300)) +
+  #scale_y_continuous(limits = c(0, 0.25)) +
+  theme_bw() +
+  theme(
+    axis.title.x = element_text(size = sz - 5),
+    axis.title.y = element_text(size = sz - 5),
+    axis.text = element_text(size = sz - 5),
+    aspect.ratio = 1,
+    plot.title = element_blank()
+  )
+
+# print a list of potential influential points according to DFBETAS
+rent.extreme.dfbetas_t <- data.dfbetas_t[abs(data.dfbetas_t$rent_transformed) > 
+                                         2 / sqrt(length(data.dfbetas_t$obs)), ]
+rent.extreme.dfbetas_t[order(rent.extreme.dfbetas_t$rent_transformed), ]
+```
+
+DFFITS
+
+```{r}
+# calculate the DFFITS
+data.dffits_t <- data.frame("dffits" = dffits(transformed_data.lm))
+# add the observation numbers to dataframe for plotting purposes
+data.dffits_t$obs <- 1:length(data$crime_rate)
+
+# plot the DFFITS against the observation number
+ggplot(data = data.dffits_t) + 
+  geom_point(mapping = aes(x = obs, y = abs(dffits))) +
+  ylab("Absolute Value of DFFITS for Y") +
+  xlab("Observation Number") +
+  geom_hline(mapping = aes(yintercept = 2 * 
+                             sqrt(length(transformed_data.lm$coefficients) / length(obs))),
+             color = "red", linetype = "dashed") +
+  theme_bw() +
+  #scale_x_continuous(limits = c(0, 300)) +
+  #scale_y_continuous(limits = c(0, 0.3)) +
+  theme(
+    axis.title.x = element_text(size = sz - 5),
+    axis.title.y = element_text(size = sz - 5),
+    axis.text = element_text(size = sz - 5),
+    aspect.ratio = 1,
+    plot.title = element_blank()
+  )
+
+# print a list of potential influential points according to DFFITS
+data.dffits[abs(data.dffits_t$dffits) > 2 * 
+             sqrt(length(transformed_data.lm$coefficients) / length(data.dffits_t$obs)), ]
+```
 
 A 95% confidence interval for the slope
 
 ```{r}
-confint(data.lm, parm = "Avg_rent", level = 0.95)
+confint(transformed_data.lm, parm = "rent_transformed", level = 0.95)
 ```
+We are 95% confident that the average [Transformed y] increases between -.045 and .005 for every one increase in the sin of rent?
+Because zero is concluding in this interval, we fail to reject the null and cannot say whether or not there is a relationship between rent and crime rate. 
+
 
 The MSE
 
 ```{r}
-sum(data$residuals ^ 2) / (length(data$residuals) - 2)
+sum(data$residuals_t ^ 2) / (length(data$residuals_t) - 2)
 ```
 
+```{r}
+summary(transformed_data.lm)$r.squared
+summary(transformed_data.lm)$adj.r.squared
+summary(transformed_data.lm)$fstatistic
+
+```
+
+```{r}
 
 
+```
 
 
 
