@@ -128,7 +128,7 @@ Histogram for residuals
 ```{r}
 ggplot(data = data, mapping = aes(x = residuals)) + 
   geom_histogram(mapping = aes(y = ..density..), binwidth = 0.0015) +
-  stat_function(fun = dnorm, color = "red", size = 0.0015,
+  stat_function(fun = dnorm, color = "red", size = 2,
                 args = list(mean = mean(data$residuals), 
                             sd = sd(data$residuals))) +
   theme(aspect.ratio = 1)
@@ -168,7 +168,7 @@ Cook's Distance
 ```{r}
 data$cooksd <- cooks.distance(data.lm)
 # Find n
-# data[data$cooksd >= n / length(data$cooksd), ]
+data[data$cooksd >= 4 / length(data$cooksd), ]
 ```
 
 Brown-Forsythe Test
@@ -249,19 +249,30 @@ data.dffits[abs(data.dffits$dffits) > 2 *
 ### Assumptions
 
 #### X vs Y is linear
-X vs Y is not linear.
+X vs Y is not linear, since the scatterplot does not look roughly linear and does not look like a line can be easily fitted to the data. As well the Residuals vs Fitted values plot shows that the blue line is not roughly horizontal with heavy curvature. 
 
 #### The residuals are independent
 
+The residuals seem not to be independent since crimes the recorded are only observed or reported to the FBI. Crime in general is not random but premeditated. However, average rent is more likely to be skewed by heavy outliers in cities depending on the area. Median rent prices might be a better indicator.
+
 #### The residuals are normally distributed and centered at zero
+
+The residuals are not normally distributed. The box plot is pretty right skewed with the mean not centered at zero with the whiskers having very different lengths. As well the right skew is found in the density and residual histogram. Lastly the shapiro-wilk tests gives us a very small and significant p-value less than 0.05 therefore we reject the null hypothesis that the residuals are normally distrubuted.
 
 #### The residuals have equal/constant variance across all values of X
 
+The residuals do  have equal/constant variance across all values of average rent. The residuals vs fitted values plot seems to show equal variance of average rent prices with slightly more variance on the right side . However, the brown-forsythe test gives us a non-significant p-value of 0.8168 which is greater than 0.05. Therefore we fail to reject the null hypothesis that the redisuals have equal variance across all values of average rent prices. 
+
 #### The model describes all observations (i.e., there are no influential points)
 
+The model seems to describe all observations, since the boxplot shows only about 4 outliers. The histogram shows possible a couple outliers. The Q-Q plot shows the same. However, the cooks distance shows many observation greater than 4/335 but they are pretty close to this cut-off. There is only one that seems to be significantly far from the cutoff and very unlikely to be influential due to the amount of observations. 
 
+#### Additional predictor variables are not required.
 
+Additional predictor variables may actually be required. Since it seems rent prices do not predict crime rates very well. Other predictor variables may be supply vs demand of housing in a city or State. Another predictor could be numbers of years since last renovations of housing. As well unemployment rates in a city could possibly predict crime rates.
 
+### A Preliminary Conclusion
+ Simple linear regression is not appropriate for this data set since few assumptions are met to even justify it. Another big indicator is the presence of many other predictor variables that could influence crime rates. Therefore it is possible that even transforming the current model may not yield any compelling results. It seems that Multiple linear regression could be a better route to be able to predict crime-rates. Trying to make statistical inference on this current model will mostly likely reveal that this is the case. 
 
 
 
