@@ -93,20 +93,20 @@ data.base.plot <- ggplot(data = data, mapping = aes(x = Avg_rent, y = crime_rate
 data.base.plot
 ```
 
-The OLS regression line along with the scatterplot
+####The OLS regression line along with the scatterplot
 
 ```{r}
 data.base.plot + geom_smooth(method = "lm", se = FALSE) 
 ```
 
-Residuals vs. Fitted Values Plot
+#### Residuals vs. Fitted Values Plot
 
 ```{r}
 autoplot(data.lm, which = 1, ncol = 1, nrow = 1) +
   theme(aspect.ratio = 1, plot.title = element_text(hjust = 0.5))
 ```
 
-Residuals vs. Predictor Plot
+#### Residuals vs. Predictor Plot
 
 ```{r}
 ggplot(data = data, mapping = aes(y = residuals, x = Avg_rent)) +
@@ -116,14 +116,14 @@ ggplot(data = data, mapping = aes(y = residuals, x = Avg_rent)) +
 
 
 
-Normal Probability Plot
+#### Normal Probability Plot
 
 ```{r}
 autoplot(data.lm, which = 2, ncol = 1, nrow = 1) +
   theme(aspect.ratio = 1, plot.title = element_text(hjust = 0.5))
 ```
 
-Histogram for residuals
+#### Histogram for residuals
 
 ```{r}
 ggplot(data = data, mapping = aes(x = residuals)) + 
@@ -134,7 +134,7 @@ ggplot(data = data, mapping = aes(x = residuals)) +
   theme(aspect.ratio = 1)
 ```
 
-Boxplot for residuals
+#### Boxplot for residuals
 
 ```{r}
 ggplot(data = data, mapping = aes(y = residuals)) +
@@ -142,7 +142,7 @@ ggplot(data = data, mapping = aes(y = residuals)) +
   theme(aspect.ratio = 1)
 ```
 
-Sequence Plot
+#### Sequence Plot
 
 ```{r}
 ggplot(data) +
@@ -157,13 +157,13 @@ ggplot(data) +
         aspect.ratio = 1)
 ```
 
-Shapiro-Wilk Test
+#### Shapiro-Wilk Test
 
 ```{r}
 shapiro.test(data$residuals)
 ```
 
-Cook's Distance
+#### Cook's Distance
 
 ```{r}
 data$cooksd <- cooks.distance(data.lm)
@@ -171,7 +171,7 @@ data$cooksd <- cooks.distance(data.lm)
 data[data$cooksd >= 4 / length(data$cooksd), ]
 ```
 
-Brown-Forsythe Test
+#### Brown-Forsythe Test
 
 ```{r}
 grp <- as.factor(c(rep("lower", floor(dim(data)[1] / 2)), 
@@ -179,7 +179,7 @@ grp <- as.factor(c(rep("lower", floor(dim(data)[1] / 2)),
 leveneTest(data[order(data$Avg_rent), "residuals"] ~ grp, center = median)
 ```
 
-DFBETAS
+#### DFBETAS
 
 ```{r}
 # calculate the DFBETAS
@@ -211,7 +211,7 @@ rent.extreme.dfbetas <- data.dfbetas[abs(data.dfbetas$Avg_rent) >
 rent.extreme.dfbetas[order(rent.extreme.dfbetas$Avg_rent), ]
 ```
 
-DFFITS
+#### DFFITS
 
 ```{r}
 # calculate the DFFITS
@@ -246,7 +246,7 @@ data.dffits[abs(data.dffits$dffits) > 2 *
 
 
 
-### Assumptions
+### Assumption Checking for The Model
 
 #### X vs Y is linear
 X vs Y is not linear, since the scatterplot does not look roughly linear and does not look like a line can be easily fitted to the data. As well the Residuals vs Fitted values plot shows that the blue line is not roughly horizontal with heavy curvature. 
@@ -272,7 +272,7 @@ The model seems to describe all observations, since the boxplot shows only about
 Additional predictor variables may actually be required. Since it seems rent prices do not predict crime rates very well. Other predictor variables may be supply vs demand of housing in a city or State. Another predictor could be numbers of years since last renovations of housing. As well unemployment rates in a city could possibly predict crime rates.
 
 ### A Preliminary Conclusion
- Simple linear regression is not appropriate for this data set since few assumptions are met to even justify it. Another big indicator is the presence of many other predictor variables that could influence crime rates. Therefore it is possible that even transforming the current model may not yield any compelling results. It seems that Multiple linear regression could be a better route to be able to predict crime-rates. Trying to make statistical inference on this current model will mostly likely reveal that this is the case. 
+ Simple linear regression is not appropriate for this data set since few assumptions are met to even justify it. Another big indicator is the presence of many other predictor variables that could influence crime rates. Therefore it is possible that even transforming the current model may not yield any compelling results. It seems that Multiple linear regression could be a better route to be able to predict crime-rates. It would be inappropriate to make statistical inference on this model. We will try to transform the data and see if it still reveals x 
 
 
 ```{r, fig.align='center'}
@@ -296,7 +296,7 @@ data$residuals_t <- transformed_data.lm$residuals
 data$fitted.values_t <- transformed_data.lm$fitted.values
 ```
 
-### Basic Scatterplot
+#### Basic Scatterplot
 ```{r}
 data.transformed.plot <- ggplot(data = data, mapping = aes(x = rent_transformed, y = crime_rate)) + 
   geom_point() +
@@ -311,20 +311,20 @@ data.transformed.plot <- ggplot(data = data, mapping = aes(x = rent_transformed,
 data.transformed.plot
 ```
 
-The OLS regression line along with the scatterplot
+#### The OLS regression line along with the scatterplot
 
 ```{r}
 data.transformed.plot + geom_smooth(method = "lm", se = FALSE) 
 ```
 
-Residuals vs. Fitted Values Plot
+#### Residuals vs. Fitted Values Plot
 
 ```{r}
 autoplot(transformed_data.lm, which = 1, ncol = 1, nrow = 1) +
   theme(aspect.ratio = 1, plot.title = element_text(hjust = 0.5))
 ```
 
-Residuals vs. Predictor Plot
+#### Residuals vs. Predictor Plot
 
 ```{r}
 ggplot(data = data, mapping = aes(y = residuals_t, x = rent_transformed)) +
@@ -334,14 +334,14 @@ ggplot(data = data, mapping = aes(y = residuals_t, x = rent_transformed)) +
 
 
 
-Normal Probability Plot
+#### Normal Probability Plot
 
 ```{r}
 autoplot(transformed_data.lm, which = 2, ncol = 1, nrow = 1) +
   theme(aspect.ratio = 1, plot.title = element_text(hjust = 0.5))
 ```
 
-Histogram for residuals
+#### Histogram for residuals
 
 ```{r}
 ggplot(data = data, mapping = aes(x = residuals_t)) + 
@@ -352,7 +352,7 @@ ggplot(data = data, mapping = aes(x = residuals_t)) +
   theme(aspect.ratio = 1)
 ```
 
-Boxplot for residuals
+#### Boxplot for residuals
 
 ```{r}
 ggplot(data = data, mapping = aes(y = residuals_t)) +
@@ -360,7 +360,7 @@ ggplot(data = data, mapping = aes(y = residuals_t)) +
   theme(aspect.ratio = 1)
 ```
 
-Sequence Plot
+#### Sequence Plot
 
 ```{r}
 ggplot(data) +
@@ -375,13 +375,13 @@ ggplot(data) +
         aspect.ratio = 1)
 ```
 
-Shapiro-Wilk Test
+#### Shapiro-Wilk Test
 
 ```{r}
 shapiro.test(data$residuals_t)
 ```
 
-Cook's Distance
+#### Cook's Distance
 
 ```{r}
 data$cooksd_t <- cooks.distance(transformed_data.lm)
@@ -389,7 +389,7 @@ data$cooksd_t <- cooks.distance(transformed_data.lm)
 data[data$cooksd_t >= 4 / length(data$cooksd_t), ]
 ```
 
-Brown-Forsythe Test
+#### Brown-Forsythe Test
 
 ```{r}
 grp <- as.factor(c(rep("lower", floor(dim(data)[1] / 2)), 
@@ -397,7 +397,7 @@ grp <- as.factor(c(rep("lower", floor(dim(data)[1] / 2)),
 leveneTest(data[order(data$rent_transformed), "residuals"] ~ grp, center = median)
 ```
 
-DFBETAS
+#### DFBETAS
 
 ```{r}
 # calculate the DFBETAS
@@ -429,7 +429,7 @@ rent.extreme.dfbetas_t <- data.dfbetas_t[abs(data.dfbetas_t$rent_transformed) >
 rent.extreme.dfbetas_t[order(rent.extreme.dfbetas_t$rent_transformed), ]
 ```
 
-DFFITS
+#### DFFITS
 
 ```{r}
 # calculate the DFFITS
@@ -460,34 +460,92 @@ ggplot(data = data.dffits_t) +
 data.dffits[abs(data.dffits_t$dffits) > 2 * 
              sqrt(length(transformed_data.lm$coefficients) / length(data.dffits_t$obs)), ]
 ```
+### Assumption Checking for The Transformed Model
 
-A 95% confidence interval for the slope
+#### X vs Y is linear
+X vs Y is linear, since the scatterplot does look roughly linear and does looks like a line can be easily fitted to the data. However that line may not have much of a slope. As well the Residuals vs Fitted values plot shows that the blue line is roughly horizontal with heavy curvature. 
+
+#### The residuals are independent
+
+The residuals seem not to be independent since crimes the recorded are only observed or reported to the FBI. Crime in general is not random but premeditated. However, average rent is more likely to be skewed by heavy outliers in cities depending on the area. Median rent prices might be a better indicator.
+
+#### The residuals are normally distributed and centered at zero
+
+The residuals are normally distributed. The box plot is pretty normal with the mean centered at zero with the whiskers having roughly equal lengths. The density and residual histogram for the transformed data looks normal. As well, the Q-Q plot for the transformed data seems to follow the diagonal dashed line very well meaning the residuals look normally distributed.
+
+#### The residuals have equal/constant variance across all values of X
+
+The residuals dohave equal/constant variance across all values of average rent. The residuals vs fitted values plot seems to show equal variance of average rent prices with slightly more variance on the right side . However, the brown-forsythe test for the transformed data gives us a non-significant p-value of 0.9866 which is greater than 0.05. Therefore we fail to reject the null hypothesis that the redisuals have equal variance across all values of average rent prices. 
+
+#### The model describes all observations (i.e., there are no influential points)
+
+The model seems to describe all observations, since the boxplot shows only about 4 outliers. The histogram shows possible a couple outliers. The Q-Q plot shows the same. However, the cooks distance shows many observation greater than 4/335 but they are all pretty close to this cut-off. There seems to be no influential points.
+
+#### Additional predictor variables are not required.
+
+Additional predictor variables may actually be required. Since it seems rent prices do not predict crime rates very well. Other predictor variables may be supply vs demand of housing in a city or State. Another predictor could be numbers of years since last renovations of housing. As well unemployment rates in a city could possibly predict crime rates.
+
+#### A 95% confidence interval and Hypothesis test for the slope
 
 ```{r}
 confint(transformed_data.lm, parm = "rent_transformed", level = 0.95)
+
+summary(transformed_data.lm)
+
+t.stat <- (transformed_data.lm$coefficients[2] - 0) / summary(transformed_data.lm)$coefficients[2, 2]
+t.stat
+pt(t.stat, df = nrow(data) - 2, lower.tail = FALSE) * 2
 ```
-We are 95% confident that the average [Transformed y] increases between -.045 and .005 for every one increase in the sin of rent?
-Because zero is concluding in this interval, we fail to reject the null and cannot say whether or not there is a relationship between rent and crime rate. 
+We are 95% confident that the average [Transformed y] increases between -.045 and .005 for every one increase in the sin of rent.
+Because zero is concluding in this interval, we fail to reject the null hypothesis and cannot say whether or not there is a relationship between rent and crime rate. 
 
+Looking at the hypothesis test for the slope we see that the it gave us a non significant p-value of 1.73 > .05. Therefore we fail to reject the null hypothesis that there is no a significant relationship between average rent and crime rates in a city in the United States. It is not appropriate to do a confidence or prediction interval on the average and individual crime rates of the transformed model. However below we have provided both to show that they do not contribute anything very valuable
 
-The MSE
+#### A 95% Confidence and Prediciton interval for the average and individual values of Average Rent in a City
 
 ```{r}
-sum(data$residuals_t ^ 2) / (length(data$residuals_t) - 2)
+predict(transformed_data.lm,
+        newdata = data.frame(rent_transformed = 1200),
+        interval = "confidence",
+        level = 0.95)
+
+predict(transformed_data.lm,
+        newdata = data.frame(rent_transformed = 1200),
+        interval = "prediction",
+        level = 0.95)
 ```
 
+Both the confidence interval the transformed average of crime rate where average rent is equal to 1200 and prediction interval for individual crime rates where average rent is equal to 1200  are roughly the same. The confidence interval is only a tiny bit narrower.
+
+We are 95% confident that the transformed  average crime rate in a city is between -6.14 and 1.42 when the average rent is equal to 1200 dollars. As well we are 95% confident that the transformed individual crime rate for a city is between -6.14 and 1.42 when the average rent is equal to 1200.
+
+#### MSE and RMSE of the Transformed Data
+```{r}
+anova <- aov(transformed_data.lm)
+summary(anova)
+mse <- summary(anova)[[1]][2, 2] / summary(anova)[[1]][2, 1] 
+mse
+sqrt(mse)
+```
+
+#### R-squared and Adjusted R-squared of the Transformed Data
 ```{r}
 summary(transformed_data.lm)$r.squared
 summary(transformed_data.lm)$adj.r.squared
-summary(transformed_data.lm)$fstatistic
 
 ```
 
+The r square value tells us that .37% of crime is explained by average rent
+The adjusted r-value represents  the proportion of variation in the crime rent explained by average rent, adjusted for the number of variables in the model. With .08% of the variability in the crime rate is  explained by average rent, after adjusting for the number of variables in the model, I would say this is not a good fit, and average rent is not very useful at predicting crime rates in a city.
+
+#### F-statistic of the Transformed data
 ```{r}
-
-
+f <- summary(transformed_data.lm)$fstatistic
+f
+pf(f[1], f[2], f[3], lower.tail = FALSE)
 ```
 
+Our F-statistic gives us a non significant p-value which means we fail to reject the null hypothesis that the predictor of Crime rate has no linear relationship with average rent.
 
 
 ## Results and Conclusion
