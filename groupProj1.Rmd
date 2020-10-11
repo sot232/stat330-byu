@@ -25,11 +25,24 @@ sz <- 16
 
 We are interested to see if there is a correlation between crime rates and average rent in a city in the United States. We hypothesize that rent with have a significant affect on crime rate, specifically that higher rent will increase crime. Our predictor variable is crime rate and how it might explain rent prices in a city.
 
-To test our assumption, we got our crime data from the FBI's database from 2010-2015 and got our rent data for the same years from Zillow. We will begin our analysis by applying basic summary statistics and exploratory data techniques to better understand the data. Then, we apply simple linear regression
+To test our assumption, we got our crime data from the FBI's database from 2010-2015 and got our rent data for the same years from Zillow. We will begin our analysis by applying basic summary statistics and exploratory data techniques to better understand the data. Then, we apply simple linear regression.
+
+The data sources are as follows:
+Crime Dataset: https://www.kaggle.com/marshallproject/crime-rates/notebooks
+Rent Dataset: https://www.kaggle.com/zillow/rent-index
+
+To merge the datasets, we averaged the rent for the year on the rent dataset, tidyed both datasets, and joined using year, city, and state as the keys. 
 
 We conclude our analysis by using what we learned to infer to ... We recommend ...
 
-## Steps
+## Steps/Process
+
+To analyze the data we will follow these basic steps outlined below:
+1. Summarize data and prepare it for analysis
+2. Check assumptions for a linear model
+3. Transform data to better fit assumptions
+4. Repeat 3 & 4 until transformation is sufficient
+5. Analyze the relationship of crime rate and rent through confidence intervals, hypotheses tests, and find the success of our model. 
 
 ### Import and preprocessing data
 
@@ -37,8 +50,8 @@ The following table displays the variable names in this data set, along with the
 
 Variable   | Description
 ---------- | -------------
-Weight     | Weight of the car in pounds
-MPG        | Miles per gallon of the car
+Crime Rate | The number of violent crimes (homicides, rapes, burglary, etc.) divided by the population
+Rent       | The average rent price per year
 
 ```{r}
 data <- read.csv(file = "Crime_vs_Rent_Group_Project.csv", header = TRUE)
@@ -550,5 +563,6 @@ Our F-statistic gives us a non significant p-value which means we fail to reject
 
 ## Results and Conclusion
 
-The relationship is not significant
-
+Although we hypothesized that rent would be able to predict crime rate, there seems to be no significant relationship between them. Because of this, we cannot use rent to predict crime rate, create accurate prediction intervals, or confidence intervals about a certain rent amount (although we did to show what we would do if it were significant). However, we were surprised that the residuals were pretty scattered as far as a sequence plot because we were concerned about the possibility of the time affecting the results. But this was not the case. 
+I think to continue the analysis of rent and crime rate there are three main approaches. We can try to obtain a bigger dataset that includes many cities (more than just the metropolitan cities). If we collect data for more cities, we might be able to see a pattern between the rent prices and crime rate. Second, we could zoom in our focus onto certain areas of cities to get more robust data. Instead of just "Las Vegas", we would look at Summerlin, Henderson, North Las Vegas, Paradise, etc. Most of the cities we analyzed are large enough, they are broken up into different neighborhoods that could be analyzed. Finally, I believe looking into other variables might create a more interesting analysis. For this analysis we assumed rent prices were the only things to predict crime rate, but in reality we could look at quality of schools/education, average income, average number of people in a household, etc. 
+This analysis, although with insignificant results, was very beneficial as we became more familiar with the datasets and applications of linear models in "real life" situations.
