@@ -1,0 +1,175 @@
+---
+title: "Understanding what Influences House Prices"
+author: "me"
+date: "11/5/2020"
+output: html_document
+---
+
+<style type="text/css">
+h1.title {
+font-size: 40px;
+text-align: center;
+}
+h4.author {
+font-size: 40px;
+text-align: center;
+}
+</style>
+
+```{r setup, include=FALSE}
+# load packages here
+library(fastDummies) # helps create dummy variables
+library(corrplot)  # needed for correlation matrix
+library(tidyverse)
+library(ggfortify)  # plot glmnet objects using ggplot instead of base R
+library(car)  # needed for VIFs
+library(bestglm)  # for stepwise variable selection methods
+library(leaps)  # for stepwise methods
+library(gridExtra)  # for laying out multiple ggplots on same plot
+library(glmnet)  # for ridge, lasso, and elastic net
+set.seed(12345)  # make sure to set your seed when doing cross validation!
+sz <- 15  # set size to use when plotting
+```
+
+### Background and Introduction
+
+
+
+
+
+
+### Methods and Results
+
+
+
+
+The following table displays the variable names in this data set, along with their descriptions.
+
+
+Variable       | Description
+-------------- | -------------
+x              | Observation Number
+LotArea        | Size of Lot in square feet
+YearBuilt      | Year the house was originally built in
+YearRemodADD   | Year of the most recent Remodal or Addition, if none originally build date
+TotalSF        | Total number of square feet within the house
+FullBaths      | Total number of full bathrooms in the house
+HalfBaths      | Total number of half baths in the house
+TotRmsAbvGrd   | Number of rooms that are Ground level and above
+SaleType*      | Describes the condition of the house at time of sale and type of transaction
+LotConfig*     | Describes how the house is situated in relation to other houses and the roads
+BldgType*      | Describes the type of house (one family, duplex, etc.)
+SalePrice      | The price of the sale in US Dollars
+
+* These are categorical variables and will have dummy variables created in the model. However, to simplify the descriptions, the whole categorical variable is described.
+
+
+### Exploratory Data Analysis
+```{r}
+# read in the data set and explore
+houses <- read.csv(file = "Project 2 Simplified Dataset.csv")
+houses2 <- read.csv(file = "House Prices with Dummies.csv")
+
+
+
+
+
+# exploratory data analysis
+
+
+
+```
+#### EDA Results
+
+
+
+
+### Creating the Model
+```{r}
+# Model Creation
+
+# model summary
+
+```
+
+
+### Checking assumptions
+Linear
+```{r}
+
+```
+[words]
+
+Independent 
+[words]
+
+Normality
+```{r}
+
+```
+[words]
+
+Equal Variance/Homoscadicity 
+```{r}
+
+```
+[Words]
+
+
+No Influential Points
+```{r}
+
+```
+[Words]
+
+All Predictor Variables Included
+[Words]
+
+Multicollinearity
+```{r}
+
+```
+[words]
+
+Transformation of data
+```{r}
+
+```
+[words]
+
+### Variable Selection (Maybe in assumptions??)
+[words]
+```{r}
+
+```
+[words]
+interactions
+```{r}
+
+```
+[words]
+
+
+### Final Model
+```{r}
+
+```
+[words]
+
+Measurements of Model
+```{r}
+
+```
+
+
+conf int of model
+```{r}
+
+```
+
+
+### Summary and Conclusion
+
+[words]
+
+
