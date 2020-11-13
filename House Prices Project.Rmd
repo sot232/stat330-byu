@@ -28,19 +28,20 @@ library(leaps)  # for stepwise methods
 library(gridExtra)  # for laying out multiple ggplots on same plot
 library(glmnet)  # for ridge, lasso, and elastic net
 set.seed(12345)  # make sure to set your seed when doing cross validation!
-sz <- 15  # set size to use when plotting
+sz <- 10  # set size to use when plotting
 ```
 
 ### Background and Introduction
 
+When buying and selling real estate and housing, both sides want to get the best deal. The house selling price must be fair and accurate. However, there are many things that impact how much a house costs such as location, square footage, updates, lot placement, type of sale, etc. These things vary so much throughout the housing market, that almost each house has a unique combination of attributes. We want to figure out if these attributes actually matter in determining price, or how combinations of attributes affect the price.
 
-
+In order to do this, we collected a dataset entitled the "Ames Housing Dataset". This was originally collected by Dean De Cock at Truman State University to teach his student's using an updated dataset. This dataset was collected from homes in Ames, Iowa from the Assesor's Office. Dean De Cock kindly cleaned the data to its current format making it more interpretable for students. The original dataset included 80 variables, but for our purposes we are only exploring the effects of 10 of those variables. A more detailed description of those variables can be found under "Methods and Results" in the report. 
 
 
 
 ### Methods and Results
 
-
+To test the effects of these variables on house price, we obtained the aforementioned dataset of housing prices and descriptions of residential areas in Ames, Iowa. We will begin our analysis by applying basic summary statistics and exploratory data techniques to better understand the data. Then, we apply multiple linear regression with mortality as the response, regressed on the other variables in the data set. [DID WE TRANSFORM IT OR GET RID OF VARIABLES]
 
 
 The following table displays the variable names in this data set, along with their descriptions.
@@ -66,19 +67,87 @@ SalePrice      | The price of the sale in US Dollars
 
 ### Exploratory Data Analysis
 ```{r}
-# read in the data set and explore
+# read in the data set and set factors
 houses <- read.csv(file = "Project 2 Simplified Dataset.csv")
+houses <- houses[, 2:12] # get rid of obs number
 houses2 <- read.csv(file = "House Prices with Dummies.csv")
+houses.continuous.variables <- select_if(houses, is.numeric) # makes EDA Faster
+  
 
 
+houses$SaleType <- as.factor(houses$SaleType)
+houses$LotConfig <- as.factor(houses$LotConfig)
+houses$BldgType <- as.factor(houses$BldgType)
 
 
+head(houses) # Make sure data set was read in right and variable types make sense
 
+```
+
+```{R}
 # exploratory data analysis
 
+# Summary of Data
+summary(houses)
+
+
+# Correlation Plot
+corrplot(cor(houses.continuous.variables), type = "upper")
+cor(houses.continuous.variables)
+
+```
+
+```{r}
+ggplot(data = houses, mapping = aes(x = TotalSF, y = SalePrice, color = BldgType)) +
+  geom_point() +
+  theme_bw() +
+ scale_x_continuous(limits = c(300, 12000)) +
+  scale_y_continuous(limits = c(34000, 756000)) +
+  theme(axis.title.x = element_text(size = sz),
+        axis.title.y = element_text(size = sz),
+        axis.text = element_text(size = sz),
+        aspect.ratio = 1)
+
+ggplot(data = houses, mapping = aes(x = YearRemodAdd, y = SalePrice)) +
+  geom_point() +
+  theme_bw() +
+ scale_x_continuous(limits = c(1950, 2010)) +
+  scale_y_continuous(limits = c(34000, 756000)) +
+  theme(axis.title.x = element_text(size = sz),
+        axis.title.y = element_text(size = sz),
+        axis.text = element_text(size = sz),
+        aspect.ratio = 1)
+
+ggplot(data = houses, mapping = aes(x = BldgType, y = SalePrice)) +
+  geom_boxplot() +
+  theme_bw() +
+  scale_y_continuous(limits = c(34000, 756000)) +
+  theme(axis.title.x = element_text(size = sz),
+        axis.title.y = element_text(size = sz),
+        axis.text = element_text(size = sz),
+        aspect.ratio = 1)
+ggplot(data = houses, mapping = aes(x = SaleType, y = SalePrice)) +
+  geom_boxplot() +
+  theme_bw() +
+  scale_y_continuous(limits = c(34000, 756000)) +
+  theme(axis.title.x = element_text(size = sz),
+        axis.title.y = element_text(size = sz),
+        axis.text = element_text(size = sz),
+        aspect.ratio = 1)
+ggplot(data = houses, mapping = aes(x = LotConfig, y = SalePrice)) +
+  geom_boxplot() +
+  theme_bw() +
+  scale_y_continuous(limits = c(34000, 756000)) +
+  theme(axis.title.x = element_text(size = sz),
+        axis.title.y = element_text(size = sz),
+        axis.text = element_text(size = sz),
+        aspect.ratio = 1)
 
 
 ```
+
+
+
 #### EDA Results
 
 
@@ -87,10 +156,86 @@ houses2 <- read.csv(file = "House Prices with Dummies.csv")
 ### Creating the Model
 ```{r}
 # Model Creation
+houses.lm <- lm(salesprice ~ ., data = houses2)
+
+
+
 
 # model summary
+summary(houses.lm)
+confint(houses.lm)
+
+
+# Plot first model
+houses.lm.plot <- lm(salesprice ~ ., 
+                     data = houses)
+
+# Plot
+ggplot(houses, aes(x = TotalSF, y = salesprice, 
+                        color = BldgType)) +
+  geom_point(size = 1) +
+  theme_bw() +
+ scale_x_continuous(limits = c(300, 12000)) +
+  scale_y_continuous(limits = c(34000, 756000)) +
+  geom_smooth(method = "lm", 
+              mapping = aes(y = predict(houses.lm.plot, houses))) +
+  theme(axis.title.x = element_text(size = sz),
+        axis.title.y = element_text(size = sz),
+        axis.text = element_text(size = sz),
+        legend.text = element_text(size = sz),
+        legend.title = element_text(size = sz),
+        aspect.ratio = 1)
 
 ```
+
+
+### Variable Selection (Maybe in assumptions??)
+
+We only want to include the variables that are most important to the model. Because of this, we will perform some Variable selection analysis to pick what variables to include. 
+
+
+```{r}
+
+interaction.plot(x.factor = houses$TotRmsAbvGrd,
+                 trace.factor = houses$BldgType,
+                 response = houses$SalePrice,
+                 lwd = 2,
+                 col = c("Blue", "green", "red", "dark green", "orange"),
+                 trace.label = "Building Type",
+                 xlab = "Total Rooms above Ground",
+                 ylab = "Average Sales Price ($)")
+interaction.plot(x.factor = houses$TotRmsAbvGrd,
+                 trace.factor = houses$FullBaths,
+                 response = houses$SalePrice,
+                 lwd = 2,
+                 col = c("Blue", "green", "red", "dark green", "orange", "dark blue"),
+                 trace.label = "Full Baths",
+                 xlab = "Total Rooms above Ground",
+                 ylab = "Average Sales Price ($)")
+interaction.plot(x.factor = houses$TotRmsAbvGrd,
+                 trace.factor = houses$LotConfig,
+                 response = houses$SalePrice,
+                 lwd = 2,
+                 col = c("Blue", "green", "red", "dark green", "orange", "dark blue"),
+                 trace.label = "Full Baths",
+                 xlab = "Total Rooms above Ground",
+                 ylab = "Average Sales Price ($)")
+```
+[words]
+
+
+interactions
+```{r}
+
+houses.lm.int <- lm(salesprice ~ BldgType + LotConfig + LotArea + TotRmsAbvGrd + TotalSF + YearBuilt + 
+                      YearRemodAdd + FullBaths + HalfBaths + SaleType +
+                      BldgType:TotalSF + TotRmsAbvGrd:TotalSF + YearBuilt:YearRemodAdd,
+                    data = houses)
+
+summary(houses.lm.int)
+
+```
+[words]
 
 
 ### Checking assumptions
@@ -137,17 +282,7 @@ Transformation of data
 ```
 [words]
 
-### Variable Selection (Maybe in assumptions??)
-[words]
-```{r}
 
-```
-[words]
-interactions
-```{r}
-
-```
-[words]
 
 
 ### Final Model
